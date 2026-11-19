@@ -4,9 +4,9 @@ import { Calculadora } from "@/components/calculadora";
 export default function SimplesNacional() {
   return (
     <>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Simples Nacional</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+      <div className="space-y-3">
+        <h1 className="titulo">Simples Nacional</h1>
+        <p className="intro">
           Cálculo conforme a NT 2026.005. A atividade (cAtivSN) vai de 01 a 14, ou 90 para operações não tributáveis;
           as alíquotas efetivas do Simples são informadas por item.
         </p>

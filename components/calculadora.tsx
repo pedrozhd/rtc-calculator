@@ -16,8 +16,24 @@ type Coluna = [rotulo: string, caminho: string];
 type Erro = { code?: string; title?: string; detail?: string };
 type Objeto = { nObj?: number; estadoItem?: string; erros?: Erro[] };
 
-const entrada =
-  "w-full rounded border border-zinc-300 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700";
+// Situação devolvida pelo serviço -> texto e cor do selo.
+const estados: Record<string, [string, string]> = {
+  CALCULADO: ["Calculado", "text-carimbo"],
+  CALCULO_SIMULADO: ["Simulado", "text-ouro"],
+  NAO_CALCULADO: ["Não calculado", "text-suave"],
+  NAO_IMPLEMENTADO: ["Não implementado", "text-suave"],
+  INCONSISTENCIA_ENTRADA: ["Entrada inconsistente", "text-erro"],
+  FALHA_TECNICA: ["Falha técnica", "text-erro"],
+};
+
+// O serviço devolve decimais como "1200.00"; exibe no formato brasileiro.
+function formatar(v: unknown) {
+  if (v == null) return "—";
+  const s = String(v);
+  return /^-?\d+\.\d+$/.test(s)
+    ? Number(s).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : s;
+}
 
 function montar(campos: Campo[], valores: Valores) {
   const o: Record<string, unknown> = {};
@@ -40,7 +56,7 @@ function Entrada({
   rotuloOculto?: string;
 }) {
   const comum = {
-    className: entrada,
+    className: "campo",
     value: valor,
     "aria-label": rotuloOculto,
     onChange: (e: { target: { value: string } }) => onChange(e.target.value),
@@ -109,7 +125,7 @@ export function Calculadora({
         );
       }
     } catch {
-      setErro("Não foi possível falar com o serviço de cálculo.");
+      setErro("Não foi possível falar com o serviço de cálculo. Tente de novo em alguns segundos.");
     } finally {
       setCalculando(false);
     }
@@ -118,36 +134,38 @@ export function Calculadora({
   const objetos = (ler(resultado, "objetos") as Objeto[] | undefined) ?? [];
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={calcular} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="space-y-8">
+      <form onSubmit={calcular} className="folha">
+        <h2 className="folha-titulo">Dados da operação</h2>
+        <div className="grade">
           {campos.map((c) => (
-            <label key={c.nome} className="space-y-1 text-sm">
-              <span className="block text-zinc-600 dark:text-zinc-400">{c.rotulo}</span>
+            <label key={c.nome} className="celula">
+              <span className="rotulo">{c.rotulo}</span>
               <Entrada campo={c} valor={op[c.nome] ?? ""} onChange={(v) => setOp({ ...op, [c.nome]: v })} />
             </label>
           ))}
         </div>
 
+        <h2 className="folha-titulo">Itens</h2>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="itens min-w-[720px]">
             <thead>
-              <tr className="text-left text-zinc-600 dark:text-zinc-400">
-                <th className="pr-2 font-normal">#</th>
+              <tr>
+                <th>Nº</th>
                 {camposItem.map((c) => (
-                  <th key={c.nome} className="pr-2 pb-1 font-normal">
-                    {c.rotulo}
-                  </th>
+                  <th key={c.nome}>{c.rotulo}</th>
                 ))}
-                <th />
+                <th>
+                  <span className="sr-only">Remover</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {itens.map((it, i) => (
                 <tr key={i}>
-                  <td className="pr-2">{i + 1}</td>
+                  <td className="num text-suave">{i + 1}</td>
                   {camposItem.map((c) => (
-                    <td key={c.nome} className="pr-2 pb-1">
+                    <td key={c.nome}>
                       <Entrada
                         campo={c}
                         valor={it[c.nome] ?? ""}
@@ -156,13 +174,13 @@ export function Calculadora({
                       />
                     </td>
                   ))}
-                  <td>
+                  <td className="w-10 text-center">
                     <button
                       type="button"
                       aria-label={`Remover item ${i + 1}`}
                       disabled={itens.length === 1}
                       onClick={() => setItens(itens.filter((_, j) => j !== i))}
-                      className="px-2 text-zinc-500 hover:text-red-600 disabled:opacity-30"
+                      className="text-suave hover:text-erro disabled:opacity-30"
                     >
                       ✕
                     </button>
@@ -173,81 +191,76 @@ export function Calculadora({
           </table>
         </div>
 
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setItens([...itens, itemInicial])}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700"
-          >
-            Adicionar item
+        <div className="canhoto">
+          <button disabled={calculando} className="botao">
+            {calculando ? "Calculando…" : "Calcular tributos"}
           </button>
-          <button
-            disabled={calculando}
-            className="rounded bg-emerald-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
-          >
-            {calculando ? "Calculando…" : "Calcular"}
+          <button type="button" onClick={() => setItens([...itens, itemInicial])} className="botao-leve">
+            Adicionar item
           </button>
         </div>
       </form>
 
       {erro && (
-        <p role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+        <p role="alert" className="aviso aviso-erro">
           {erro}
         </p>
       )}
 
       {resultado != null && (
-        <section aria-live="polite" className="space-y-4">
+        <section aria-live="polite" className="folha">
+          <h2 className="folha-titulo">Resultado do cálculo</h2>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="itens min-w-[640px]">
               <thead>
-                <tr className="border-b border-zinc-300 text-left dark:border-zinc-700">
-                  <th className="py-1 pr-3">#</th>
-                  <th className="pr-3">Situação</th>
+                <tr>
+                  <th>Nº</th>
+                  <th>Situação</th>
                   {colunas.map(([r]) => (
-                    <th key={r} className="pr-3 text-right">
+                    <th key={r} className="num">
                       {r}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {objetos.map((o, i) => (
-                  <tr key={i} className="border-b border-zinc-200 align-top dark:border-zinc-800">
-                    <td className="py-1 pr-3">{o.nObj}</td>
-                    <td className="pr-3">
-                      {o.estadoItem}
-                      {o.erros?.map((er, j) => (
-                        <p key={j} className="text-red-700 dark:text-red-300">
-                          {er.code}: {er.detail ?? er.title}
-                        </p>
-                      ))}
-                    </td>
-                    {colunas.map(([r, c]) => (
-                      <td key={r} className="pr-3 text-right tabular-nums">
-                        {String(ler(o, c) ?? "—")}
+                {objetos.map((o, i) => {
+                  const [texto, cor] = estados[o.estadoItem ?? ""] ?? [o.estadoItem ?? "—", "text-suave"];
+                  return (
+                    <tr key={i}>
+                      <td className="num text-suave">{o.nObj}</td>
+                      <td>
+                        <span className={`selo ${cor}`}>{texto}</span>
+                        {o.erros?.map((er, j) => (
+                          <p key={j} className="mt-1 max-w-prose text-erro">
+                            {er.code}: {er.detail ?? er.title}
+                          </p>
+                        ))}
                       </td>
-                    ))}
-                  </tr>
-                ))}
+                      {colunas.map(([r, c]) => (
+                        <td key={r} className="num">
+                          {formatar(ler(o, c))}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <dl className="grade bg-faixa">
             {totais.map(([r, c]) => (
-              <div key={r} className="rounded border border-zinc-200 p-3 dark:border-zinc-800">
-                <dt className="text-xs text-zinc-600 dark:text-zinc-400">{r}</dt>
-                <dd className="text-lg font-semibold tabular-nums">{String(ler(resultado, c) ?? "—")}</dd>
+              <div key={r} className="celula py-3">
+                <dt className="rotulo">{r}</dt>
+                <dd className="text-2xl font-bold tabular-nums [font-stretch:112%]">{formatar(ler(resultado, c))}</dd>
               </div>
             ))}
           </dl>
 
-          <details className="text-sm">
-            <summary className="cursor-pointer text-zinc-600 dark:text-zinc-400">Resposta completa (JSON)</summary>
-            <pre className="mt-2 overflow-x-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-900">
-              {JSON.stringify(resultado, null, 2)}
-            </pre>
+          <details className="px-3 py-2 text-sm">
+            <summary className="cursor-pointer text-suave">Resposta completa do serviço (JSON)</summary>
+            <pre className="mt-2 mb-1 overflow-x-auto bg-faixa p-3 text-xs">{JSON.stringify(resultado, null, 2)}</pre>
           </details>
         </section>
       )}

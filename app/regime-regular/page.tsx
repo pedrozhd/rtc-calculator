@@ -6,9 +6,9 @@ const T = "total.tribCalc.IBSCBSTot";
 export default function RegimeRegular() {
   return (
     <>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Regime regular</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+      <div className="space-y-3">
+        <h1 className="titulo">Regime regular</h1>
+        <p className="intro">
           Informe NCM (bens) ou NBS (serviços) em cada item. As alíquotas só devem ser preenchidas para fatos geradores
           a partir de 2027; em 2026 o serviço usa as alíquotas de referência.
         </p>

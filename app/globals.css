@@ -1,26 +1,229 @@
 @import "tailwindcss";
 
+/* Identidade: documento fiscal. Papel frio, tinta azul-marinho, verde de carimbo
+   para ações e ocre para valores simulados. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  color-scheme: light dark;
+  --barra: #14213d;
+  --barra-texto: #fbfcfa;
+  --papel: #e9eeea;
+  --folha: #fbfcfa;
+  --faixa: #dde5df;
+  --linha: #b9c3bd;
+  --tinta: #14213d;
+  --tinta-suave: #55607a;
+  --carimbo: #0b6e4f;
+  --ouro: #7a580c;
+  --ouro-fundo: #f6ecc9;
+  --erro: #a3241c;
+  --erro-fundo: #fbe9e7;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --barra: #2a3756;
+    --barra-texto: #e8ecf4;
+    --papel: #0f1626;
+    --folha: #172033;
+    --faixa: #1f2a44;
+    --linha: #37445f;
+    --tinta: #e8ecf4;
+    --tinta-suave: #9aa6bf;
+    --carimbo: #4fc59a;
+    --ouro: #e3be62;
+    --ouro-fundo: #3a3013;
+    --erro: #ff9b90;
+    --erro-fundo: #3d1a17;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-barra: var(--barra);
+  --color-barra-texto: var(--barra-texto);
+  --color-papel: var(--papel);
+  --color-folha: var(--folha);
+  --color-faixa: var(--faixa);
+  --color-linha: var(--linha);
+  --color-tinta: var(--tinta);
+  --color-suave: var(--tinta-suave);
+  --color-carimbo: var(--carimbo);
+  --color-ouro: var(--ouro);
+  --color-ouro-fundo: var(--ouro-fundo);
+  --color-erro: var(--erro);
+  --color-erro-fundo: var(--erro-fundo);
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: var(--font-sans);
+  }
+  h1,
+  h2 {
+    font-stretch: 118%;
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--carimbo);
+    outline-offset: 2px;
+  }
+  code {
+    font-size: 0.9em;
+    background: var(--faixa);
+    padding: 0.1em 0.35em;
+    border-radius: 2px;
+  }
+}
+
+@layer components {
+  /* Cabeçalho de página */
+  .titulo {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .intro {
+    max-width: 68ch;
+    color: var(--tinta-suave);
+    line-height: 1.55;
+  }
+
+  /* Folha: o bloco que imita um documento fiscal */
+  .folha {
+    background: var(--folha);
+    border: 1.5px solid var(--tinta);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .folha-titulo {
+    background: var(--barra);
+    color: var(--barra-texto);
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-stretch: 112%;
+  }
+
+  /* Campos em células coladas, com o rótulo pequeno no alto, como num DANFE */
+  .grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+  .celula {
+    display: block;
+    padding: 0.4rem 0.75rem 0.5rem;
+    border-right: 1px solid var(--linha);
+    border-bottom: 1px solid var(--linha);
+  }
+  .celula:focus-within,
+  .itens td:focus-within {
+    box-shadow: inset 0 0 0 2px var(--carimbo);
+  }
+  .rotulo {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--tinta-suave);
+  }
+  .campo {
+    width: 100%;
+    background: transparent;
+    color: inherit;
+    font-size: 0.9375rem;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+  }
+  .campo option {
+    background: var(--folha);
+    color: var(--tinta);
+  }
+
+  .itens {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .itens th {
+    background: var(--faixa);
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--tinta-suave);
+    padding: 0.35rem 0.75rem;
+    border-right: 1px solid var(--linha);
+    border-bottom: 1px solid var(--linha);
+    white-space: nowrap;
+  }
+  .itens td {
+    padding: 0.4rem 0.75rem;
+    border-right: 1px solid var(--linha);
+    border-bottom: 1px solid var(--linha);
+    vertical-align: top;
+  }
+  .itens .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Linha de destaque do canhoto: separa o preenchimento das ações */
+  .canhoto {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    border-top: 1.5px dashed var(--tinta);
+    margin-top: -1px;
+    background: var(--folha);
+  }
+
+  .botao {
+    background: var(--carimbo);
+    color: var(--folha);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: 2px;
+  }
+  .botao:hover {
+    filter: brightness(1.12);
+  }
+  .botao:disabled {
+    opacity: 0.6;
+  }
+  .botao-leve {
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--tinta);
+    border-radius: 2px;
+  }
+  .botao-leve:hover {
+    background: var(--faixa);
+  }
+
+  .selo {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.1rem 0.5rem;
+    border: 1.5px solid currentColor;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .aviso {
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--ouro);
+    background: var(--ouro-fundo);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .aviso-erro {
+    border-left-color: var(--erro);
+    background: var(--erro-fundo);
+    color: var(--erro);
+  }
 }

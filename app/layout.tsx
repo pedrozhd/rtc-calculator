@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Archivo } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  axes: ["wdth"],
 });
 
 export const metadata: Metadata = {
@@ -27,26 +23,30 @@ const links = [
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <header className="border-b border-zinc-200 dark:border-zinc-800">
-          <nav className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-1 px-4 py-3 text-sm">
-            <Link href="/" className="font-semibold">
+    <html lang="pt-BR" className={`${archivo.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col">
+        <header className="bg-barra text-barra-texto">
+          <nav className="mx-auto flex max-w-5xl flex-wrap items-stretch gap-x-1 px-4">
+            <Link href="/" className="mr-6 py-3.5 text-lg font-bold [font-stretch:118%]">
               Calculadora RTC
             </Link>
             {links.map(([href, rotulo]) => (
-              <Link key={href} href={href} className="text-zinc-600 hover:text-emerald-700 dark:text-zinc-400">
+              <Link
+                key={href}
+                href={href}
+                className="flex items-center border-b-[3px] border-transparent px-3 py-3.5 text-sm font-medium opacity-80 hover:border-carimbo hover:opacity-100"
+              >
                 {rotulo}
               </Link>
             ))}
           </nav>
         </header>
-        <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8">{children}</main>
-        <footer className="mx-auto w-full max-w-5xl px-4 py-6 text-xs text-zinc-500">
-          Cálculos feitos pelos serviços de código aberto da Receita Federal. Ferramenta de simulação, sem valor fiscal.
+        <main className="mx-auto w-full max-w-5xl flex-1 space-y-8 px-4 py-10">{children}</main>
+        <footer className="border-t border-linha">
+          <p className="mx-auto max-w-5xl px-4 py-5 text-xs text-suave">
+            Cálculos feitos pelos serviços de código aberto da Receita Federal (LC 214/2025). Simulação, sem valor
+            fiscal.
+          </p>
         </footer>
       </body>
     </html>
