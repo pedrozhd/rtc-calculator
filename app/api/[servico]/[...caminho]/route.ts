@@ -10,8 +10,11 @@ const backends: Record<string, string | undefined> = {
 
 async function repassar(req: Request, ctx: RouteContext<"/api/[servico]/[...caminho]">) {
   const { servico, caminho } = await ctx.params;
-  const base = backends[servico];
+  const base = Object.hasOwn(backends, servico) ? backends[servico] : undefined;
   if (!base) return Response.json({ detail: "Serviço não configurado." }, { status: 404 });
+  // Segmentos "." e ".." fariam o fetch sair do prefixo do backend no mesmo host.
+  if (caminho.some((s) => s === "." || s === ".."))
+    return Response.json({ detail: "Caminho inválido." }, { status: 400 });
 
   const destino = `${base.replace(/\/$/, "")}/${caminho.map(encodeURIComponent).join("/")}${new URL(req.url).search}`;
   const tipo = req.headers.get("content-type");
