@@ -16,13 +16,16 @@ async function repassar(req: Request, ctx: RouteContext<"/api/[servico]/[...cami
   const destino = `${base.replace(/\/$/, "")}/${caminho.map(encodeURIComponent).join("/")}${new URL(req.url).search}`;
   const tipo = req.headers.get("content-type");
   try {
-    const res = await fetch(destino, {
-      method: req.method,
-      headers: tipo ? { "Content-Type": tipo } : undefined,
-      body: req.method === "GET" ? undefined : await req.arrayBuffer(),
-      redirect: "manual",
-      cache: "no-store",
-    });
+    const body = req.method === "GET" ? undefined : await req.arrayBuffer();
+    const headers: Record<string, string> = tipo ? { "Content-Type": tipo } : {};
+    let res: Response;
+    // O WAF às vezes responde 307 entregando cookies de sessão e espera a mesma chamada
+    // de novo com eles. Repete no mesmo destino (nunca no Location recebido).
+    for (let tentativa = 0; ; tentativa++) {
+      res = await fetch(destino, { method: req.method, headers, body, redirect: "manual", cache: "no-store" });
+      if (res.status < 300 || res.status >= 400 || tentativa === 2) break;
+      headers.Cookie = res.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ");
+    }
     return new Response(res.body, {
       status: res.status,
       headers: { "Content-Type": res.headers.get("content-type") ?? "application/octet-stream" },
