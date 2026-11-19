@@ -1,0 +1,26 @@
+# Blueprint do Render: sobe os dois backends oficiais que a Vercel não executa.
+# Em https://dashboard.render.com > New > Blueprint, aponte para este repositório.
+services:
+  - type: web
+    name: rtc-simples-nacional
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backends/simples-nacional/Dockerfile
+    dockerContext: ./backends/simples-nacional
+    healthCheckPath: /api/versao
+    envVars:
+      - key: SERVER_PORT
+        value: "10000"
+      # O plano gratuito tem 512 MB; limita o heap da JVM para caber.
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=70
+
+  - type: web
+    name: rtc-danfse
+    runtime: docker
+    plan: free
+    repo: https://github.com/ReceitaFederal/calculadora-rtc-gerador-danfse
+    healthCheckPath: /health/live
+    envVars:
+      - key: SERVER_PORT
+        value: "10000"
